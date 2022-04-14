@@ -1,0 +1,21 @@
+{
+  "name": "eslint-config",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "files": [
+    "eslint-preset.js"
+  ],
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "5.19.0",
+    "@typescript-eslint/parser": "5.19.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-config-airbnb-typescript": "17.0.0",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-import": "2.26.0",
+    "eslint-plugin-jest": "26.1.4"
+  },
+  "devDependencies": {
+    "typescript": "4.6.3"
+  }
+}

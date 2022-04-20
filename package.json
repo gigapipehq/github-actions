@@ -19,6 +19,7 @@
   "devDependencies": {
     "eslint": "8.13.0",
     "prettier": "2.6.2",
+    "sort-package-json": "1.55.0",
     "turbo": "1.2.3"
   }
 }

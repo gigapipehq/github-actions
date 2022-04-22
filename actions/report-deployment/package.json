@@ -1,0 +1,62 @@
+{
+  "name": "report-deployment-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A GitHub action that updates the deployment information on the Notion page",
+  "homepage": "https://github.com/gigapipehq/github-actions/actions/report-deployment/README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gigapipehq/github-actions.git"
+  },
+  "author": "Gigapipe <engineering@gigapipe.com> (https://gigapipe.com/)",
+  "contributors": [
+    {
+      "name": "Oriol Castro",
+      "email": "ocastro@gigapipe.com",
+      "url": "https://github.com/oriolcastro"
+    }
+  ],
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/main.ts --source-map --minify --license licenses.txt",
+    "format": "prettier --write '**/*.ts'",
+    "lint": "eslint src/**/*.ts",
+    "test": "jest"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged",
+    "pre-push": "pnpm test"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "pnpm exec eslint --fix --report-unused-disable-directives",
+      "pnpm exec prettier --write"
+    ],
+    "package.json": "sort-package-json"
+  },
+  "dependencies": {
+    "@actions/core": "1.6.0",
+    "@notionhq/client": "1.0.4"
+  },
+  "devDependencies": {
+    "@types/jest": "27.4.1",
+    "@types/node": "16.11.26",
+    "@types/semver": "7.3.9",
+    "@vercel/ncc": "0.33.4",
+    "eslint": "8.13.0",
+    "eslint-config": "workspace:*",
+    "jest": "27.5.1",
+    "lint-staged": "12.3.7",
+    "prettier": "2.6.2",
+    "semver": "7.3.7",
+    "simple-git-hooks": "2.7.0",
+    "sort-package-json": "1.55.0",
+    "ts-jest": "27.1.4",
+    "ts-node": "10.7.0",
+    "tsconfig": "workspace:*",
+    "typescript": "4.6.3"
+  },
+  "engines": {
+    "node": "^16.14.0"
+  }
+}

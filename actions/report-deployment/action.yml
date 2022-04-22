@@ -1,0 +1,24 @@
+name: 'Report Deployment'
+description: 'Updates the deployment information on the Notion page'
+branding:
+  icon: 'circle'
+  color: 'purple'
+inputs:
+  application:
+    description: 'Name of the application being deployed.'
+    required: true
+  newVersion:
+    description: 'Id of the version being deployed.'
+    required: true
+  environment:
+    description: 'Name of the environment where the deployment took place'
+    required: true
+  token:
+    description: 'Provide the Notion token as a secret'
+    required: true
+  notionDatabaseId:
+    description: 'Id of the Notion database'
+    required: true
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

@@ -7,17 +7,17 @@ inputs:
   application:
     description: 'Name of the application being deployed.'
     required: true
-  newVersion:
-    description: 'Id of the version being deployed.'
+  version:
+    description: 'Id of the new version being deployed.'
     required: true
   environment:
-    description: 'Name of the environment where the deployment took place'
+    description: 'Name of the environment where the deployment took place.'
     required: true
   token:
-    description: 'Provide the Notion token as a secret'
+    description: 'Provide the Notion token as a secret.'
     required: true
   notionDatabaseId:
-    description: 'Id of the Notion database'
+    description: 'Id of the Notion database where the deployed version will be reported.'
     required: true
 runs:
   using: 'node16'

@@ -21,7 +21,7 @@
     "build": "ncc build src/main.ts --source-map --minify --license licenses.txt",
     "format": "prettier --write '**/*.ts'",
     "lint": "eslint src/**/*.ts",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",

@@ -36,10 +36,10 @@ name: 'CI'
 on:
   push:
     branches:
-      - main'
+      - main
 
 jobs:
-  exampple:
+  example:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout

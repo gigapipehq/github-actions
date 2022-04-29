@@ -1,0 +1,37 @@
+name: Build actions
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'actions/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build all actions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3.0.0
+        with:
+          fetch-depth: 2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.2.1
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.1.1
+        with:
+          node-version: 16
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build
+        run: pnpm build
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4.14.1
+        with:
+          commit_message: 'chore: build actions and update dist folders'
+          commit_user_name: Gigapipe Bot
+          commit_user_email: engineering@gigapipe.com
+          commit_author: GigapipeBot <engineering@gigapipe.com>

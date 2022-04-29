@@ -2,7 +2,7 @@
   "name": "gigapipe-internal-actions",
   "description": "Monorepo with the internal actions and workflows for the ci/cd automation",
   "private": true,
-  "packageManager": "pnpm@6.32.6",
+  "packageManager": "pnpm@6.32.11",
   "engines": {
     "node": ">=16.14.0"
   },

@@ -1,1 +1,4 @@
-module.exports = require('./configs/eslint/eslint-preset.js')
+module.exports = {
+    root: true,
+    extends: ['gigapipe'],
+}

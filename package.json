@@ -2,13 +2,13 @@
   "name": "gigapipe-internal-actions",
   "description": "Monorepo with the internal actions and workflows for the ci/cd automation",
   "private": true,
-  "packageManager": "pnpm@6.32.11",
+  "packageManager": "pnpm@7.1.5",
   "engines": {
-    "node": ">=16.14.0"
+    "node": ">=16.15.0"
   },
   "workspaces": [
     "actions/*",
-    "configs/*"
+    "packages/*"
   ],
   "scripts": {
     "build": "turbo run build",
@@ -17,9 +17,10 @@
     "test": "turbo run test"
   },
   "devDependencies": {
-    "eslint": "8.13.0",
+    "eslint": "8.16.0",
+    "eslint-config-gigapipe": "workspace:*",
     "prettier": "2.6.2",
-    "sort-package-json": "1.55.0",
-    "turbo": "1.2.3"
+    "sort-package-json": "1.57.0",
+    "turbo": "1.2.12"
   }
 }

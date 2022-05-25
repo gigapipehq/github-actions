@@ -6,13 +6,16 @@ It also contains some workflow templates to make easier to boostrap the CI/CD au
 
 ## Repo structure
 
-The monorepo uses [PNPM Workspaces](https://pnpm.io/6.x/workspaces) to manage packages and dependencies and [TurboRepo](https://turborepo.org/) as the tasks orchestration tool. This is the structure:
+The monorepo uses [PNPM Workspaces](https://pnpm.io/workspaces) to manage packages and dependencies and [TurboRepo](https://turborepo.org/) as the tasks orchestration tool. This is the structure:
 
 ```
 .
 ├── actions
 │   ├── changelog-reader
 │   │   ├── Contains the source code for the changelog-reader action.
+├── workflows
+│   ├── pr-automation
+│   │   ├── Contains examples of workflows used for pull request automation.
 │
 ├── configs
 │   ├── eslint
@@ -27,14 +30,14 @@ The monorepo uses [PNPM Workspaces](https://pnpm.io/6.x/workspaces) to manage pa
 
 ## Pre-requisits
 
-Make sure you have Node 16.14.0 installed. If you have [nvm](https://github.com/nvm-sh/nvm) just run `nvm install` from the root of the project.
+Make sure you have Node 16.15.0 installed. If you have [nvm](https://github.com/nvm-sh/nvm) just run `nvm install` from the root of the project.
 
 Install PNPM using:
 
 ```
 corepack enable
 
-corepack prepare pnpm@6.32.8 --activate
+corepack prepare pnpm@7.1.5 --activate
 
 ```
 

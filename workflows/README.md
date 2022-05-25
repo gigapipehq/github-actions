@@ -1,0 +1,1 @@
+This folder contains examples of different workflows that are used for all or most of our repositories. It intends to be a centralized place from which devs could pick up-to-date workflow definitions and configuration files.

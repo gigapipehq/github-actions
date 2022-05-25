@@ -1,0 +1,5 @@
+feature: ['feature/*', 'feat/*']
+tweak: ['tweak/*']
+fix: ['fix/*', 'bugfix/*']
+test: test/*
+other: other/*

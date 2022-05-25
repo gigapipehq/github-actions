@@ -1,12 +1,11 @@
 module.exports = {
-  root: true,
   parser: '@typescript-eslint/parser',
   extends: ['airbnb-base', 'airbnb-typescript/base', 'prettier'],
   plugins: ['jest', '@typescript-eslint'],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: './tsconfig.eslint.json',
+    project: './tsconfig.json',
   },
   env: {
     node: true,

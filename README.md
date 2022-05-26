@@ -1,8 +1,8 @@
 # Gigapipe actions and workflows
 
-This monorepo contains several actions that are used acros the different organization projects.
+This monorepo contains several actions that are used across the different organization' projects.
 
-It also contains some workflow templates to make easier to boostrap the CI/CD automation for new projects.
+It also contains some workflow templates to make it easier to bootstrap the CI/CD automation for new projects.
 
 ## Repo structure
 
@@ -45,7 +45,7 @@ corepack prepare pnpm@7.1.5 --activate
 
 From the root of the repo run `pnpm install` to install all the dependencies.
 
-Work in your action as an isolated packages. To install new dependencies just run `pnpm add NEW_DEPENDENCY` from the action folder.
+Work in your action as an isolated package. To install new dependencies just run `pnpm add NEW_DEPENDENCY` from the action folder.
 
 ## Test
 

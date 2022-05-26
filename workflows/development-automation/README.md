@@ -1,18 +1,18 @@
 # Automation for the development branches
 
-This folder contains different workflows that listen for push and/or pull_requests events (depending on the project) into the working branches (at the moment rc-vX.Y.Z and hotfix-vX.Y.Z). The main jobs are:
+This folder contains different workflows that listen for push and/or pull_requests events (depending on the project) in the working branches (at the moment rc-vX.Y.Z and hotfix-vX.Y.Z). The main jobs are:
 - Build and/or deploy the application.
 - Update the Notion page where deployed versions are tracked.
 
-There are different workflows depending on the programing language of the project. This is mainly due to the differences in how the application is build and/or deployed.
+There are different workflows depending on the programing language of the project. This is mainly due to the differences in how the application is built and/or deployed.
 
 ## ⚙️ Config
 
 In the yml workflow file update any missing parameter that is marked with a ⚙️
 
-## ⭐ Acknowledgement
+## ⭐ Acknowledgment
 
-This are the third-party actions used on the different workflows.
+These are the third-party actions used on the different workflows.
 
 - BetaHuhn [deploy-to-vercel-action](https://github.com/BetaHuhn/deploy-to-vercel-action)
 - RafikFarhad [push-to-gcr-github-action](https://github.com/RafikFarhad/push-to-gcr-github-action)

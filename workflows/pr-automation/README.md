@@ -10,14 +10,14 @@ There are different workflows depending on the programing language of the projec
 
 ## ⚙️ Config
 
-The two config files `./config/pr-assigner.yml` and `./config/pr-labeler.yml` should be copied into the `.github` folder an updated properly.
+The two config files `./config/pr-assigner.yml` and `./config/pr-labeler.yml` should be copied into the `.github` folder and updated properly.
 
 In the yml workflow file update any missing parameter that is marked with a ⚙️
 
 
-## ⭐ Acknowledgement
+## ⭐ Acknowledgment
 
-This are the third-party actions used on the different workflows.
+These are the third-party actions used on the different workflows.
 
 - kentaro-m [auto-assign-action](https://github.com/kentaro-m/auto-assign-action)
 - TimonVS [pr-labeler-action](https://github.com/TimonVS/pr-labeler-action)

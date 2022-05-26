@@ -3,7 +3,7 @@
 This folder contains different workflows that listen for push and pull_requests events into the staging branch. The main jobs are:
 - Generate the changelog and update it in the repository.
 - Bump the app version.
-- Build the application images and/or deploy it.
+- Build the application images and/or deploy them.
 - Notify the new image or app deployed to Slack.
 - Update the Notion page where deployed versions are tracked.
 
@@ -12,13 +12,13 @@ There are different workflows depending on the programing language of the projec
 
 ## ⚙️ Config
 
-The single config file `./config/changelog_config.json` should be copied into the `.github` folder an updated properly.
+The single config file `./config/changelog_config.json` should be copied into the `.github` folder and updated properly.
 
 In the yml workflow file update any missing parameter that is marked with a ⚙️
 
-## ⭐ Acknowledgement
+## ⭐ Acknowledgment
 
-This are the third-party actions used on the different workflows.
+These are the third-party actions used on the different workflows.
 
 - mikepenz [release-changelog-builder-action](https://github.com/mikepenz/release-changelog-builder-action)
 - stefanzweifel [git-auto-commit-action](https://github.com/stefanzweifel/git-auto-commit-action)

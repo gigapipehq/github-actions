@@ -1,0 +1,70 @@
+name: Development automation
+on:
+  push:
+    branches:
+      - rc-v*
+      - hotfix-v*
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - rc-v*
+      - hotfix-v*
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Deploy to Vercel Action
+        uses: BetaHuhn/deploy-to-vercel-action@v1.9.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # ⚙️ Put the team scope here
+          VERCEL_SCOPE: VERCEL_SCOPE
+          PRODUCTION: false
+          # ⚙️ Put any alias you want for the staging deployments here
+          ALIAS_DOMAINS: |
+            acme.com
+          PR_PREVIEW_DOMAIN: '{REPO}-{PR}.vercel.app'
+          GITHUB_DEPLOYMENT: ${{ github.event_name == 'push' }}
+          GITHUB_DEPLOYMENT_ENV: Dev
+          TRIM_COMMIT_MESSAGE: true
+
+  report-deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Extract next version from branch
+        id: extract_version
+        uses: actions/github-script@v6.1.0
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        with:
+          result-encoding: string
+          script: |
+            const { GITHUB_CONTEXT } = process.env
+            const githubContext = JSON.parse(GITHUB_CONTEXT)
+            const newVersion = githubContext.ref.split('-v')[1]
+            return newVersion
+
+      - name: Get short hash
+        id: get_short_sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        
+      - name: Report deploy
+        uses: gigapipehq/github-actions/actions/report-deployment@main
+        with:
+          application: 'mch-ui' #or other javascript project
+          version: ${{steps.extract_version.outputs.result}}-dev.${{ steps.get_short_sha.outputs.sha_short }}
+          environment: Dev
+          token: ${{ secrets.NOTION_API_TOKEN }}
+          # ⚙️ Put the notion database id to be updated
+          notionDatabaseId: NOTION_DATABASE_ID

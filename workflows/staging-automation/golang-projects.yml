@@ -1,0 +1,215 @@
+name: Staging automation
+on:
+  push:
+    branches:
+      - staging
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - staging
+      
+jobs:
+  # This job is only executed for pull_request events
+  # It will prepare everything for the next release
+  # - Generate the changelog
+  # - Update the CHANGELOG.md file
+  # - Bump version in package.json
+  # - Commit those changes
+  # - Add the changelog to the PR description
+  prepare-release:
+    runs-on: ubuntu-latest
+    if: "${{ github.event_name == 'pull_request' }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+        with:
+          # This is necessary in order for GigapipeBot user to be able to commit to the HEAD branch that opened the PR against staging.
+          # Usually it will be an rc or hotfix branch.
+          token: ${{ secrets.GIGAPIPEBOT_PAT }}
+
+      - name: Extract next version from PR head branch
+        id: extract_version
+        uses: actions/github-script@v6.1.0
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        with:
+          result-encoding: string
+          script: |
+            const { GITHUB_CONTEXT } = process.env
+            const githubContext = JSON.parse(GITHUB_CONTEXT)
+            const newVersion = githubContext.head_ref.split('-')[1]
+            return newVersion
+
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v3.0.0
+        with:
+          configuration: '.github/changelog_config.json'
+          failOnError: true
+          toTag: ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update CHANGELOG file
+        id: update_changelog
+        uses: actions/github-script@v6.1.0
+        with:
+          script: |
+            const fs = require("fs");
+            const currentContent = fs.readFileSync('CHANGELOG.md', 'utf8');
+            const version = '${{ steps.extract_version.outputs.result}}'
+            const changelog = ${{ toJson(steps.build_changelog.outputs.changelog) }}
+            const newContent = [`# ${version}\n\n`,`${changelog}\n\n`,`${currentContent}`].join('');
+            fs.writeFileSync('CHANGELOG.md',newContent);
+
+      - name: Bump version in version.txt
+        id: bump_version
+        uses: actions/github-script@v6.1.0
+        with:
+          script: |
+            const fs = require("fs");
+            const newContent = '${{ steps.extract_version.outputs.result}}'
+            fs.writeFileSync('version.txt',newContent);
+
+      - name: Commit Changelog and version increase
+        uses: stefanzweifel/git-auto-commit-action@v4.14.1
+        with:
+          commit_message: 'chore: release version ${{ steps.extract_version.outputs.result }} and update CHANGELOG.md'
+          commit_options: '--no-verify'
+          push_options: --force
+          commit_user_name: Gigapipe Bot
+          commit_user_email: engineering@gigapipe.com
+          commit_author: GigapipeBot <engineering@gigapipe.com>
+
+      - name: Add changelog to PR description
+        id: add_changelog
+        uses: riskledger/update-pr-description@v2
+        with:
+          body: ${{ steps.build_changelog.outputs.changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Runs only on push and abstracts some operations shared between the two build jobs
+  prepare-build:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    outputs:
+      imageTag: ${{steps.extract_version.outputs.version}}-staging
+      newVersion: ${{steps.extract_version.outputs.version}}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Extract next version from version.txt
+        id: extract_version
+        run: |
+          version=$(cat version.txt | sed 's/[^0-9.]//g')
+          echo version: $version
+          echo ::set-output name=version::$version
+
+  # Create the docker images for the Golang project and upload them to GCP container registry
+  # Only runs on push since we don't have preview deploys for Pull Requests
+  build-and-push-to-gcr:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: prepare-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v0.6.0
+
+      - name: Build and push image to GCR
+        uses: RafikFarhad/push-to-gcr-github-action@v4.0.0
+        with:
+          gcloud_service_key: ${{ secrets.GCLOUD_CREDENTIALS }}
+          registry: eu.gcr.io
+          project_id: ${{ secrets.GOOGLE_PROJECT_ID }}
+          image_name: mch-launchpad #or other golang project
+          image_tag: ${{ needs.prepare-build.outputs.imageTag }}
+          # ⚙️ Add the path to project's dockerfile
+          dockerfile: PATH_TO_DOCKERFILE
+
+  # Create the docker images for the Golang project and upload them to AWS container registry
+  # Only runs on push since we don't have preview deploys for Pull Requests
+  build-and-push-to-ecr:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: prepare-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.6.1
+        with:
+          aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+          # ⚙️ Add your AWS region
+          aws-region: AWS_REGION
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1.4.0
+
+      - name: Build and push image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: mch-launchpad #or other golang project
+          IMAGE_TAG: ${{ needs.prepare-build.outputs.imageTag }}
+        run: |
+          echo "Docker Registry is: $ECR_REGISTRY"
+          echo "Docker Repository is: $ECR_REPOSITORY"
+          echo "Docker Release tag is: $IMAGE_TAG"
+          echo "Building and pushing docker image..."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f PATH_TO_DOCKERFILE .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  # This job is only executed for push events after the build of the docker image has run successfully
+  notify:
+    runs-on: ubuntu-latest
+    if: "${{ github.event_name == 'push' }}"
+    needs: [prepare-build,build-and-push-to-ecr,build-and-push-to-gcr]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Post message to Slack
+        id: post_to_slack
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          # ⚙️ Put the slack channel id where you want the message to be sent here
+          channel-id: CHANNEL_ID
+          slack-message: '🚀  *Launchpad v${{steps.extract_version.outputs.version}}* deployed to *STAGING*'
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Launchpad v${{steps.extract_version.outputs.version}} - Deployed to STAGING 🚀",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<URL_TO_STAGING_CHANGELOG_FILE|View Changelog>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          
+      - name: Report deploy
+        uses: gigapipehq/github-actions/actions/report-deployment@main
+        with:
+          application: 'mch-launchpad' #or other golang project
+          version: ${{ needs.prepare-build.outputs.imageTag }}
+          environment: Staging
+          token: ${{ secrets.NOTION_API_TOKEN }}
+          # ⚙️ Put the notion database id to be updated
+          notionDatabaseId: NOTION_DATABASE_ID

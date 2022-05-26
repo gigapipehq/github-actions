@@ -1,0 +1,141 @@
+name: Development automation
+on:
+  push:
+    branches:
+      - rc-v*
+      - hotfix-v*
+
+jobs:
+  # Runs only on push and abstracts some operations shared between the two build jobs
+  prepare-build:
+    runs-on: ubuntu-latest
+    outputs:
+      imageTag: ${{steps.extract_version.outputs.result}}-dev.${{ steps.get_short_sha.outputs.sha_short }}
+      newVersion: ${{steps.extract_version.outputs.result}}
+      shortSHA: ${{ steps.get_short_sha.outputs.sha_short }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Extract next version from branch
+        id: extract_version
+        uses: actions/github-script@v6.1.0
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        with:
+          result-encoding: string
+          script: |
+            const { GITHUB_CONTEXT } = process.env
+            const githubContext = JSON.parse(GITHUB_CONTEXT)
+            const newVersion = githubContext.ref.split('-v')[1]
+            return newVersion
+
+      - name: Get short hash
+        id: get_short_sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+  # Create the docker images for the Python project and upload them to GCP container registry
+  build-and-push-to-gcr:
+    runs-on: ubuntu-latest
+    needs: [prepare-build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Pull FastAPI Docker Image (Dependency)
+        id: fastapi_docker_image
+        run: docker pull ghcr.io/gigapipehq/fastapi:python-3.10
+
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v0.6.0
+
+      - name: Build and push image to GCR
+        uses: RafikFarhad/push-to-gcr-github-action@v4.0.0
+        with:
+          gcloud_service_key: ${{ secrets.GCLOUD_CREDENTIALS }}
+          registry: eu.gcr.io
+          project_id: ${{ secrets.GOOGLE_PROJECT_ID }}
+          image_name: mch-api #or other python project
+          image_tag: ${{ needs.prepare-build.outputs.imageTag }}
+          # ⚙️ Add the path to project's dockerfile
+          dockerfile: PATH_TO_DOCKERFILE
+
+  # Create the docker images for the Python project and upload them to AWS container registry
+  build-and-push-to-ecr:
+    runs-on: ubuntu-latest
+    needs: prepare-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Login to the registry
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.6.1
+        with:
+          aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+          # ⚙️ Add your AWS region
+          aws-region: AWS_REGION
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1.4.0
+
+      - name: Build and push image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: mch-api #or other python project
+          IMAGE_TAG: ${{ needs.prepare-build.outputs.imageTag }}
+        run: |
+          echo "Docker Registry is: $ECR_REGISTRY"
+          echo "Docker Repository is: $ECR_REPOSITORY"
+          echo "Docker Release tag is: $IMAGE_TAG"
+          echo "Building and pushing docker image..."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  
+  # Send deployment information to the k8s repo in order to apply the kustomize changes
+  # DEPRECATED: this won't be necessary once the GitOps approach is implemented
+  dispatch-deploy-workflow:
+    runs-on: ubuntu-latest
+    needs: [prepare-build,build-and-push-to-ecr,build-and-push-to-gcr]
+    steps:
+      - name: Trigger deploy workflow in k8s repo
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          # ⚙️ The workflow name or id in the target repo to trigger
+          workflow: WORKFLOW_NAME_OR_ID
+          # ⚙️ The repository that contains the infrastructure as code files
+          repo: TARGET_REPO
+          token: ${{ secrets.GIGAPIPEBOT_PAT }}
+          ref: main
+          inputs: |
+            { 
+              "project": "mch-api",
+              "imageTag": "${{ needs.prepare-build.outputs.imageTag }}",
+              "env": "dev"
+            }
+
+  report-deploy:
+    runs-on: ubuntu-latest
+    needs: [prepare-build,build-and-push-to-ecr,build-and-push-to-gcr]
+    steps:
+      - name: Report deploy
+        uses: gigapipehq/github-actions/actions/report-deployment@main
+        with:
+          application: 'mch-api' #or other python project
+          version: ${{ needs.prepare-build.outputs.imageTag }}
+          environment: Dev
+          token: ${{ secrets.NOTION_API_TOKEN }}
+          # ⚙️ Put the notion database id to be updated
+          notionDatabaseId: NOTION_DATABASE_ID

@@ -1,0 +1,116 @@
+name: Production automation
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      nextVersion: ${{ steps.extract_version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Extract next version from package.json
+        id: extract_version
+        run: |
+          version=$(grep version package.json | awk -F \" '{print $4}')
+          echo version: $version
+          echo ::set-output name=version::$version
+
+      - name: Create tag
+        uses: actions/github-script@v6.1.0
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ steps.extract_version.outputs.version }}',
+              sha: context.sha
+            })
+
+      - name: Read CHANGELOG.md
+        id: read_changelog
+        uses: gigapipehq/github-actions/actions/changelog-reader@main
+        with:
+          version: v${{ steps.extract_version.outputs.version }}
+          path: ./CHANGELOG.md
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: ${{steps.read_changelog.outputs.changes}}
+          tag_name: v${{ steps.extract_version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: create-release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Deploy to Vercel Action
+        uses: BetaHuhn/deploy-to-vercel-action@v1.9.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # ⚙️ Put the team scope here
+          VERCEL_SCOPE: VERCEL_SCOPE
+          PRODUCTION: true
+          # ⚙️ Put any alias you want for the staging deployments here
+          ALIAS_DOMAINS: |
+            acme.com
+          TRIM_COMMIT_MESSAGE: true
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [create-release, deploy]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Post new release to Slack
+        id: post_to_slack
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          # ⚙️ Put the slack channel id where you want the message to be sent here
+          channel-id: CHANNEL_ID
+          slack-message: '🚀  *UI v${{needs.create-release.outputs.nextVersion}}* deployed to *PRODUCTION*'
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "UI v${{needs.create-release.outputs.nextVersion}} - Deployed to PRODUCTION 🚀",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<URL_TO_PROD_APP|Launch App>   -   <URL_TO_PROJECT_GITHUB_RELEASES/v${{needs.create-release.outputs.nextVersion}}|View Changelog>"
+                  }
+                },
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Report deploy
+        uses: gigapipehq/github-actions/actions/report-deployment@main
+        with:
+          application: 'mch-ui' #or other javascript project
+          version: ${{steps.extract_version.outputs.version}}
+          environment: Production
+          # ⚙️ Put the notion database id to be updated
+          notionDatabaseId: NOTION_DATABASE_ID

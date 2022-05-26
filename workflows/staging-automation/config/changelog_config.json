@@ -1,0 +1,41 @@
+{
+    "categories": [
+      {
+        "title": "## 🚀 Features",
+        "labels": ["feature"]
+      },
+      {
+        "title": "## ✨ Small enhancements",
+        "labels": ["tweak"]
+      },
+      {
+        "title": "## 🐛 Fixes",
+        "labels": ["fix"]
+      },
+      {
+        "title": "## 🧪 Tests",
+        "labels": ["test"]
+      },
+      {
+        "title": "## 💬 Other",
+        "labels": ["other"]
+      },
+      {
+        "title": "## 📦 Dependencies",
+        "labels": ["dependencies"]
+      }
+    ],
+    "ignore_labels": ["ignore-changelog"],
+    "pr_template": "- ${{TITLE}} ([#${{NUMBER}}](${{URL}})) @${{AUTHOR}}",
+    "max_pull_requests": 1000,
+    "max_back_track_time_days": 1000,
+    "template": "${{CHANGELOG}}\n\n<details>\n<summary>Other changes</summary>\n\n${{IGNORED}}\n</details>\n\n<details>\n<summary>Uncategorized changes</summary>\n\n${{UNCATEGORIZED}}\n</details>",
+    "empty_template": "There are no changes for this release. Review the CHANGELOG.md file to make sure this is not an error of the automation.",
+    "transformers": [
+      {
+        "pattern": "([CU]+-)+([a-zA-Z0-9]{7})",
+        "target": "[$1$2](https://app.clickup.com/t/$2)"
+      }
+    ]
+  }
+  

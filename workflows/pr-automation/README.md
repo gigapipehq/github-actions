@@ -12,6 +12,9 @@ There are different workflows depending on the programing language of the projec
 
 The two config files `./config/pr-assigner.yml` and `./config/pr-labeler.yml` should be copied into the `.github` folder an updated properly.
 
+In the yml workflow file update any missing parameter that is marked with a ⚙️
+
+
 ## ⭐ Acknowledgement
 
 This are the third-party actions used on the different workflows.

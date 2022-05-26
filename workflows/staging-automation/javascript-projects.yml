@@ -1,0 +1,172 @@
+name: Staging automation
+on:
+  push:
+    branches:
+      - staging
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - staging
+jobs:
+  # This job is only executed for pull_request events
+  # It will prepare everything for the next release
+  # - Generate the changelog
+  # - Update the CHANGELOG.md file
+  # - Bump version in package.json
+  # - Commit those changes
+  # - Add the changelog to the PR description
+  prepare-release:
+    runs-on: ubuntu-latest
+    if: "${{ github.event_name == 'pull_request' }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+        with:
+          # This is necessary in order for GigapipeBot user to be able to commit to the HEAD branch that opened the PR against staging.
+          # Usually it will be an rc or hotfix branch.
+          token: ${{ secrets.GIGAPIPEBOT_PAT }}
+
+      - name: Extract next version from PR head branch
+        id: extract_version
+        uses: actions/github-script@v6.1.0
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        with:
+          result-encoding: string
+          script: |
+            const { GITHUB_CONTEXT } = process.env
+            const githubContext = JSON.parse(GITHUB_CONTEXT)
+            const newVersion = githubContext.head_ref.split('-')[1]
+            return newVersion
+
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v3.0.0
+        with:
+          configuration: '.github/changelog_config.json'
+          failOnError: true
+          toTag: ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update CHANGELOG file
+        id: update_changelog
+        uses: actions/github-script@v6.1.0
+        with:
+          script: |
+            const fs = require("fs");
+            const currentContent = fs.readFileSync('CHANGELOG.md', 'utf8');
+            const version = '${{ steps.extract_version.outputs.result}}'
+            const changelog = ${{ toJson(steps.build_changelog.outputs.changelog) }}
+            const newContent = [`# ${version}\n\n`,`${changelog}\n\n`,`${currentContent}`].join('');
+            fs.writeFileSync('CHANGELOG.md',newContent);
+
+      - name: Bump package version
+        run: npm version ${{ steps.extract_version.outputs.result }} --git-tag-version=false --allow-same-version=true
+
+      - name: Commit Changelog and version increase
+        uses: stefanzweifel/git-auto-commit-action@v4.14.1
+        with:
+          commit_message: 'chore: release version ${{ steps.extract_version.outputs.result }} and update CHANGELOG.md'
+          commit_options: '--no-verify'
+          push_options: --force
+          commit_user_name: Gigapipe Bot
+          commit_user_email: engineering@gigapipe.com
+          commit_author: GigapipeBot <engineering@gigapipe.com>
+
+      - name: Add changelog to PR description
+        id: add_changelog
+        uses: riskledger/update-pr-description@v2
+        with:
+          body: ${{ steps.build_changelog.outputs.changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # This job is always executed and will deploy to the staging environment on push and create a preview URL on pull_request
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Deploy to Vercel Action
+        uses: BetaHuhn/deploy-to-vercel-action@v1.9.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # ⚙️ Put the team scope here
+          VERCEL_SCOPE: VERCEL_SCOPE
+          PRODUCTION: false
+          # ⚙️ Put any alias you want for the staging deployments here
+          ALIAS_DOMAINS: |
+            acme.com
+          PR_PREVIEW_DOMAIN: '{REPO}-{PR}.vercel.app'
+          GITHUB_DEPLOYMENT: ${{ github.event_name == 'push' }}
+          GITHUB_DEPLOYMENT_ENV: Staging
+          TRIM_COMMIT_MESSAGE: true
+
+  # This job is only executed for push events after the deploy has run successfully
+  notify:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Get latest tag
+        id: extract_latest_tag
+        run: |
+          latestTag=$(git tag --sort=creatordate | grep -E '[0-9]' | tail -1 | cut -b 2-7)
+          echo latestTag: $latestTag
+          echo ::set-output name=latestTag::$latestTag
+
+      - name: Extract next version from package.json
+        id: extract_version
+        run: |
+          version=$(grep version package.json | awk -F \" '{print $4}')
+          echo version: $version
+          echo ::set-output name=version::$version
+
+      - name: Post message to Slack
+        # Only send the notification when the version in the package.json is different than the latest tag
+        if: steps.extract_version.outputs.version != steps.extract_latest_tag.outputs.latestTag
+        id: post_to_slack
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          # ⚙️ Put the slack channel id where you want the message to be sent here
+          channel-id: CHANNEL_ID
+          slack-message: '🚀  *UI v${{steps.extract_version.outputs.version}}* deployed to *STAGING*'
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "UI v${{steps.extract_version.outputs.version}} - Deployed to STAGING 🚀",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<URL_TO_STAGING_APP|Launch App>   -   <URL_TO_STAGING_CHANGELOG_FILE|View Changelog>"
+                  }
+                },
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          
+      - name: Report deploy
+        uses: gigapipehq/github-actions/actions/report-deployment@main
+        with:
+          application: 'mch-ui' #or other javascript project
+          version: ${{steps.extract_version.outputs.version}}-staging
+          environment: Staging
+          token: ${{ secrets.NOTION_API_TOKEN }}
+          # ⚙️ Put the notion database id to be updated
+          notionDatabaseId: NOTION_DATABASE_ID

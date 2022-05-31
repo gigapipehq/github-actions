@@ -7,7 +7,7 @@ on:
     types: [opened, reopened]
     branches:
       - staging
-      
+
 jobs:
   # This job is only executed for pull_request events
   # It will prepare everything for the next release
@@ -169,7 +169,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     if: "${{ github.event_name == 'push' }}"
-    needs: [prepare-build,build-and-push-to-ecr,build-and-push-to-gcr]
+    needs: [prepare-build, build-and-push-to-ecr, build-and-push-to-gcr]
     steps:
       - name: Checkout
         uses: actions/checkout@v3.0.2
@@ -203,7 +203,7 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          
+
       - name: Report deploy
         uses: gigapipehq/github-actions/actions/report-deployment@main
         with:

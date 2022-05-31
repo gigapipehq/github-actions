@@ -100,7 +100,7 @@ jobs:
                     "type": "mrkdwn",
                     "text": "<URL_TO_PROD_APP|Launch App>   -   <URL_TO_PROJECT_GITHUB_RELEASES/v${{needs.create-release.outputs.nextVersion}}|View Changelog>"
                   }
-                },
+                }
               ]
             }
         env:

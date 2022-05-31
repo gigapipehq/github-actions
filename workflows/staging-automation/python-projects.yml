@@ -89,7 +89,7 @@ jobs:
         uses: riskledger/update-pr-description@v2
         with:
           body: ${{ steps.build_changelog.outputs.changelog }}
-          token: ${{ secrets.GITHUB_TOKEN }} 
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   # Runs only on push and abstracts some operations shared between the two build jobs
   prepare-build:
@@ -182,11 +182,11 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
- # This job is only executed for push events after the build of the docker image has run successfully
+  # This job is only executed for push events after the build of the docker image has run successfully
   notify:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: [prepare-build,build-and-push-to-ecr,build-and-push-to-gcr]
+    needs: [prepare-build, build-and-push-to-ecr, build-and-push-to-gcr]
     steps:
       - name: Checkout
         uses: actions/checkout@v3.0.2
@@ -215,12 +215,12 @@ jobs:
                     "type": "mrkdwn",
                     "text": "<URL_TO_STAGING_DOCS|Launch Docs>   -   <URL_TO_STAGING_CHANGELOG_FILE|View Changelog>"
                   }
-                },
+                }
               ]
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          
+
       - name: Report deploy
         uses: gigapipehq/github-actions/actions/report-deployment@main
         with:

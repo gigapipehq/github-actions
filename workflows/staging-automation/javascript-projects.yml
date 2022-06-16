@@ -36,7 +36,7 @@ jobs:
           script: |
             const { GITHUB_CONTEXT } = process.env
             const githubContext = JSON.parse(GITHUB_CONTEXT)
-            const newVersion = githubContext.head_ref.split('-')[1]
+            const newVersion = githubContext.head_ref.split('-v')[1]
             return newVersion
 
       - name: Build Changelog
@@ -56,7 +56,7 @@ jobs:
           script: |
             const fs = require("fs");
             const currentContent = fs.readFileSync('CHANGELOG.md', 'utf8');
-            const version = '${{ steps.extract_version.outputs.result}}'
+            const version = 'v${{ steps.extract_version.outputs.result}}'
             const changelog = ${{ toJson(steps.build_changelog.outputs.changelog) }}
             const newContent = [`# ${version}\n\n`,`${changelog}\n\n`,`${currentContent}`].join('');
             fs.writeFileSync('CHANGELOG.md',newContent);
@@ -67,7 +67,7 @@ jobs:
       - name: Commit Changelog and version increase
         uses: stefanzweifel/git-auto-commit-action@v4.14.1
         with:
-          commit_message: 'chore: release version ${{ steps.extract_version.outputs.result }} and update CHANGELOG.md'
+          commit_message: 'chore: release version v${{ steps.extract_version.outputs.result }} and update CHANGELOG.md'
           commit_options: '--no-verify'
           push_options: --force
           commit_user_name: Gigapipe Bot

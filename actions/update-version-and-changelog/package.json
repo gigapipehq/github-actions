@@ -1,0 +1,65 @@
+{
+  "name": "update-version-and-changelog-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A GitHub action that updates the application version and the CHANGELOG.md file during the pre-release process.",
+  "homepage": "https://github.com/gigapipehq/github-actions/actions/update-version-and-changelog/README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gigapipehq/github-actions.git"
+  },
+  "author": "Gigapipe <engineering@gigapipe.com> (https://gigapipe.com/)",
+  "contributors": [
+    {
+      "name": "Oriol Castro",
+      "email": "ocastro@gigapipe.com",
+      "url": "https://github.com/oriolcastro"
+    }
+  ],
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/main.ts --source-map --minify --license licenses.txt",
+    "format": "prettier --write '**/*.ts'",
+    "lint": "eslint src/**/*.ts",
+    "test": "jest --passWithNoTests"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged",
+    "pre-push": "pnpm test"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "pnpm exec eslint --fix --report-unused-disable-directives",
+      "pnpm exec prettier --write"
+    ],
+    "package.json": "sort-package-json"
+  },
+  "dependencies": {
+    "@actions/core": "1.9.0",
+    "@actions/exec": "1.1.1",
+    "@actions/github": "5.0.3",
+    "@octokit/rest": "18.12.0",
+    "@octokit/webhooks-types": "5.8.0"
+  },
+  "devDependencies": {
+    "@gigapipehq/tsconfig": "workspace:*",
+    "@types/jest": "28.1.2",
+    "@types/node": "16.11.26",
+    "@types/semver": "7.3.10",
+    "@vercel/ncc": "0.34.0",
+    "eslint": "8.18.0",
+    "eslint-config-gigapipe": "workspace:*",
+    "jest": "28.1.1",
+    "lint-staged": "13.0.2",
+    "prettier": "2.7.1",
+    "semver": "7.3.7",
+    "simple-git-hooks": "2.8.0",
+    "sort-package-json": "1.57.0",
+    "ts-jest": "28.0.5",
+    "ts-node": "10.8.1",
+    "typescript": "4.6.3"
+  },
+  "engines": {
+    "node": "^16.14.0"
+  }
+}

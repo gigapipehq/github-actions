@@ -1,0 +1,10 @@
+{
+  "extends": "@gigapipehq/tsconfig/node16.json",
+  "include": ["."],
+  // "compilerOptions": {
+  //   "rootDir": "./src",
+  //   "outDir": "./lib"
+  // },
+  // "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["dist", "node_modules"]
+}

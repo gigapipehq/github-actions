@@ -10,6 +10,7 @@ In a workflow use this action in a `prepare-release` job that runnes on `pull_re
 
 - The repo's code needs to be checkout using [actions/checkout](https://github.com/actions/checkout)
   - To be able to push the updates to the repo the chekout should be done using the `GIGAPIPEBOT_PAT`, look [here for an example](https://github.com/gigapipehq/github-actions/blob/main/workflows/staging-automation/javascript-projects.yml)
+- The `mikepenz/release-changelog-builder-action` action needs to have been executed in a previous job so you have access to the generated changelog to use it as input of the action.
 
 ### Inputs
 

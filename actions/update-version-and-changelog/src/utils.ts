@@ -6,13 +6,13 @@ import type { PullRequestEvent } from '@octokit/webhooks-types'
 import { readFile, writeFile } from 'fs/promises'
 import type { Languages } from './types'
 
-export async function updateChangelogFile(filepath: string, content: string, version: string) {
+export async function updateChangelogFile(filepath: string, changelog: string, version: string) {
   core.startGroup('💾 Updating changelog file')
   core.info(`Updating ${filepath}`)
-  core.info(content)
+  core.info(changelog)
 
   const currentContent = await readFile(filepath, { encoding: 'utf8' })
-  const changelog = JSON.parse(content)
+
   const newContent = [`# v${version}\n\n`, `${changelog}\n\n`, `${currentContent}`].join('')
 
   await writeFile(filepath, newContent, { encoding: 'utf8' })

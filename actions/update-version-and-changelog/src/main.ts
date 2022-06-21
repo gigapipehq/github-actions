@@ -23,7 +23,7 @@ async function run(): Promise<void> {
     const appLanguage = core.getInput('appLanguage') as Languages
     const versioningFilePath =
       core.getInput('versioningFilePath') || DEFAULT_VERSIONING_FILES[appLanguage]
-    const token = core.getInput('token', {}) || process.env.GITHUB_TOKEN!
+    const token = core.getInput('token')
     const commiterName = core.getInput('commiterName') || 'Gigapipe Bot'
     const commiterEmail = core.getInput('commiterEmail') || 'engineering@gigapipe.com'
 

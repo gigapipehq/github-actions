@@ -18,8 +18,9 @@ inputs:
     description: 'Path to the file containing the stored application version.'
     required: false
   token:
-    description: 'Github token.'
+    description: 'Personal access token with enough permissions to interact with the repo and its branches.'
     required: false
+    default: ${{ github.token }}
   commiterName:
     description: 'The name of the GitHub user to use in the commit message that updates the changelog and versioning file.'
     required: false

@@ -19,7 +19,7 @@ In a workflow use this action in a `prepare-release` job that runnes on `pull_re
 | `changelogFile`      | Path to the file containing the changelog.                                                                | false        | `./CHANGELOG.md`                                                                       |
 | `appLanguage`        | The programing language of the application.                                                               | true         | `javascript`, `python` and `golang`                                                    |
 | `versioningFilePath` | Path to the file containing the stored application version.                                               | false        | Depending on `appLanguage` could be `package.json`, `app/__init__.py` or `version.txt` |
-| `token`              | Github token                                                                                              | false        | `process.env.GITHUB_TOKEN`                                                             |
+| `token`              | Personal access token with enough permissions to interact with the repo and its branches.                 | false        | `secrets.GITHUB_TOKEN`                                                                 |
 | `commiterName`       | The name of the GitHub user to use in the commit message that updates the changelog and versioning file.  | false        | Gigapipe Bot                                                                           |
 | `commiterEmail`      | The email of the GitHub user to use in the commit message that updates the changelog and versioning file. | false        | engineering@gigapipe.com                                                               |
 

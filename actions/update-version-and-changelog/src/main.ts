@@ -49,6 +49,7 @@ async function run(): Promise<void> {
     await commitChanges(`chore: release version v${newAppVersion} and update CHANGELOG.md`, {
       name: commiterName,
       email: commiterEmail,
+      branch: payload.pull_request.head.ref,
     })
 
     await updatePRDescription(changelogContent, octokit)

@@ -1,4 +1,4 @@
-# Report deployment
+# Update versioning and changelog files
 
 A simple action that updates the application version and the CHANGELOG.md file during the pre-release process.
 

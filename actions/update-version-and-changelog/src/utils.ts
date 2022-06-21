@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
+import { exec } from '@actions/exec'
 import * as github from '@actions/github'
 import type { PullRequestEvent } from '@octokit/webhooks-types'
 
@@ -29,7 +29,7 @@ export async function bumpVersion(
 
   switch (options.appLanguage) {
     case 'javascript':
-      await exec.exec('npm', [
+      await exec('npm', [
         'version',
         version,
         '--git-tag-version=false',
@@ -56,16 +56,16 @@ export async function commitChanges(
 ) {
   core.startGroup('💾 Committing changes')
 
-  await exec.exec('git', ['config', '--global', 'user.name', config.name])
-  await exec.exec('git', ['config', '--global', 'user.email', config.email])
+  await exec('git', ['config', '--global', 'user.name', config.name])
+  await exec('git', ['config', '--global', 'user.email', config.email])
 
-  await exec.exec('git', ['fetch'])
+  await exec('git', ['fetch'])
 
-  await exec.exec('git', ['checkout', config.branch])
+  await exec('git', ['checkout', config.branch])
 
-  await exec.exec('git', ['commit', '-a', '-m', message, '--no-verify'])
+  await exec('git', ['commit', '-a', '-m', message, '--no-verify'])
 
-  await exec.exec('git', ['push', '--force'])
+  await exec('git', ['push', '--force'])
 
   core.endGroup()
 }

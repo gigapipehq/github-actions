@@ -52,9 +52,13 @@ export async function bumpVersion(
 
 export async function commitChanges(message: string, config: { name: string; email: string }) {
   core.startGroup('💾 Committing changes')
+  const payload = github.context.payload as PullRequestEvent
+  const branch = payload.pull_request.head.ref
 
   await exec.exec('git', ['config', '--global', 'user.name', config.name])
   await exec.exec('git', ['config', '--global', 'user.email', config.email])
+
+  await exec.exec('git', ['checkout', branch])
 
   await exec.exec('git', ['commit', '-a', '-m', message, '--no-verify'])
 

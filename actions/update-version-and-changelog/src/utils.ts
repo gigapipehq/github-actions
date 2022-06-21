@@ -58,6 +58,8 @@ export async function commitChanges(message: string, config: { name: string; ema
   await exec.exec('git', ['config', '--global', 'user.name', config.name])
   await exec.exec('git', ['config', '--global', 'user.email', config.email])
 
+  await exec.exec('git', ['fetch'])
+
   await exec.exec('git', ['checkout', branch])
 
   await exec.exec('git', ['commit', '-a', '-m', message, '--no-verify'])

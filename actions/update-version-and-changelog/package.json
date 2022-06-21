@@ -1,9 +1,9 @@
 {
-  "name": "changelog-reader-action",
+  "name": "update-version-and-changelog-action",
   "version": "1.0.0",
   "private": true,
-  "description": "A GitHub action to read and get data from the CHANGELOG.md files",
-  "homepage": "https://github.com/gigapipehq/github-actions/actions/changelo-reader/README.md",
+  "description": "A GitHub action that updates the application version and the CHANGELOG.md file during the pre-release process.",
+  "homepage": "https://github.com/gigapipehq/github-actions/actions/update-version-and-changelog/README.md",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gigapipehq/github-actions.git"
@@ -21,7 +21,7 @@
     "build": "ncc build src/main.ts --source-map --minify --license licenses.txt",
     "format": "prettier --write '**/*.ts'",
     "lint": "eslint src/**/*.ts",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",
@@ -35,7 +35,10 @@
     "package.json": "sort-package-json"
   },
   "dependencies": {
-    "@actions/core": "1.9.0"
+    "@actions/core": "1.9.0",
+    "@actions/exec": "1.1.1",
+    "@actions/github": "5.0.3",
+    "@octokit/webhooks-types": "5.8.0"
   },
   "devDependencies": {
     "@gigapipehq/tsconfig": "workspace:*",

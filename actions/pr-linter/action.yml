@@ -1,0 +1,25 @@
+name: 'Pull request linter'
+description: 'A GitHub action that validates the title, branch, and body of a pull request.'
+branding:
+  icon: 'circle'
+  color: 'purple'
+inputs:
+  configurationPath:
+    description: 'Defines the relative path to the configuration file.'
+    required: false
+  token:
+    description: 'Github access token with enough permissions to interact with the repo and its branches.'
+    required: false
+    default: ${{ github.token }}
+  ignoreCase:
+    description: 'Controls if the validation should be case agnostic.'
+    required: false
+  validateTitle:
+    description: 'Defines if the pull request title should be validated.'
+    required: false
+  validateBranch:
+    description: 'Defines if the pull request base branch should be validated.'
+    required: false
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

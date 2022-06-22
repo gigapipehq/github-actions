@@ -19,6 +19,7 @@
   "devDependencies": {
     "eslint": "8.18.0",
     "eslint-config-gigapipe": "workspace:*",
+    "lint-staged": "13.0.2",
     "prettier": "2.7.1",
     "sort-package-json": "1.57.0",
     "turbo": "1.2.16"

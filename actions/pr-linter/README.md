@@ -12,13 +12,13 @@ No pre-requisits.
 
 ### Inputs
 
-| **Inputs**          | **Description**                                                                           | **Required** | **Default**               |
-| ------------------- | ----------------------------------------------------------------------------------------- | ------------ | ------------------------- |
-| `configurationPath` | Relative path to the configuration file.                                                  | false        | `.github/pr_linter.json'` |
-| `token`             | Personal access token with enough permissions to interact with the repo and its branches. | false        | `secrets.GITHUB_TOKEN`    |
-| `ignoreCase`        | Boolean that controls if the validation should be case agnostic.                          | false        | `false`                   |
-| `validateTitle`     | Boolean that controls if the pull request title should be validated.                      | false        | `true`                    |
-| `validateBranch`    | Boolean that controls if the pull request base branch name should be validated.           | false        | `true`                    |
+| **Inputs**          | **Description**                                                                                                          | **Required** | **Default**               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------- |
+| `configurationPath` | Relative path to the configuration file.                                                                                 | false        | `.github/pr_linter.json'` |
+| `token`             | Personal access token with enough permissions to interact with the repo and its branches.                                | false        | `secrets.GITHUB_TOKEN`    |
+| `ignoreCase`        | Boolean that controls if the validation should be case agnostic.                                                         | false        | `false`                   |
+| `validateTitle`     | Boolean that controls if the pull request title should be validated.                                                     | false        | `true`                    |
+| `validateBranch`    | Boolean that controls if the pull request base branch name should be validated. It only applies to feature pull requests | false        | `true`                    |
 
 ### Example
 

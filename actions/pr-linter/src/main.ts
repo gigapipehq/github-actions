@@ -74,7 +74,7 @@ async function run(): Promise<void> {
       }
     }
 
-    if (validateBranch) {
+    if (validateBranch && pullRequestType === 'feature') {
       core.info('Validating pull request base branch name')
       core.debug(`branch rules = ${config.rules[pullRequestType].branch}`)
 

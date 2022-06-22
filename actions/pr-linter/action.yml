@@ -20,7 +20,7 @@ inputs:
     required: false
     default: 'true'
   validateBranch:
-    description: 'Defines if the pull request base branch should be validated.'
+    description: 'Defines if the pull request base branch should be validated. Only applies for feature pull requests.'
     required: false
     default: 'true'
 runs:

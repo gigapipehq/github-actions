@@ -53,27 +53,41 @@ async function run(): Promise<void> {
     const statuses = []
 
     if (validateTitle) {
+      core.info('Validating pull request title')
+      core.debug(`title rules = ${config.rules[pullRequestType].title}`)
       const isTitleValid = config.rules[pullRequestType].title.every(regexp => regexp.test(title))
       statuses.push(isTitleValid)
-      if (!isTitleValid)
+
+      if (!isTitleValid) {
+        core.info('Title is not valid')
+        core.debug(`title error mesage = ${config.rules[pullRequestType].titleErrorMessage}`)
         await octokit.rest.issues.createComment({
           owner: payload.repository.owner.login,
           repo: payload.repository.name,
           issue_number: prNumber,
           body: config.rules[pullRequestType].titleErrorMessage,
         })
+      }
     }
 
     if (validateBranch) {
+      core.info('Validating pull request base branch name')
+      core.debug(`branch rules = ${config.rules[pullRequestType].branch}`)
+
       const isBranchValid = config.rules[pullRequestType].branch?.test(branch) ?? true
       statuses.push(isBranchValid)
-      if (!isBranchValid)
+
+      if (!isBranchValid) {
+        core.info('Branch name is not valid')
+        core.debug(`branch name error mesage = ${config.rules[pullRequestType].branchErrorMessage}`)
+
         await octokit.rest.issues.createComment({
           owner: payload.repository.owner.login,
           repo: payload.repository.name,
           issue_number: prNumber,
           body: config.rules[pullRequestType].titleErrorMessage,
         })
+      }
     }
 
     if (statuses.some(status => status === false)) {

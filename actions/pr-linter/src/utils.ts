@@ -8,15 +8,15 @@ export function getPullRequestType(
   headBranch: string,
 ): PullRequestsTypes | undefined {
   if (baseBranch.startsWith('rc-v') || baseBranch.startsWith('hotfix-v')) {
-    core.debug('Pull request is of type `feature`')
+    core.info('Pull request is of type `feature`')
     return 'feature'
   }
   if (headBranch === 'staging') {
-    core.debug('Pull request is of type `pre-release`')
+    core.info('Pull request is of type `pre-release`')
     return 'pre-release'
   }
   if (headBranch === 'master' || headBranch === 'main') {
-    core.debug('Pull request is of type `release`')
+    core.info('Pull request is of type `release`')
     return 'release'
   }
   return undefined
@@ -45,6 +45,7 @@ export async function fetchConfigurationFile(
       core.debug(`rawConfig = ${rawConfig}`)
     } catch (error) {
       core.info(`⚠️ Configuration path provided, but it couldn't be found. Fallback to Defaults.`)
+      core.debug(`configuration = ${defaultConfig}`)
       return defaultConfig
     }
 
@@ -60,6 +61,8 @@ export async function fetchConfigurationFile(
     }
   } else {
     core.info(`ℹ️ Configuration not provided. Using Defaults.`)
+    core.debug(`configuration = ${defaultConfig}`)
+
     return defaultConfig
   }
 }

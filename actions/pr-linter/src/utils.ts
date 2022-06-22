@@ -66,3 +66,7 @@ export async function fetchConfigurationFile(
     return defaultConfig
   }
 }
+
+export function createRegex(regexString: string) {
+  return new RegExp(regexString)
+}

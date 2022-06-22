@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import type { PullRequestEvent } from '@octokit/webhooks-types'
-import { fetchConfigurationFile, getPullRequestType } from './utils'
+import { createRegex, fetchConfigurationFile, getPullRequestType } from './utils'
 
 async function run(): Promise<void> {
   core.startGroup('📘 Reading input values')
@@ -12,7 +12,6 @@ async function run(): Promise<void> {
     const octokit = github.getOctokit(token)
 
     const payload = github.context.payload as PullRequestEvent
-    core.debug(`event payload = ${JSON.stringify(payload)}`)
 
     const configurationFile: string = core.getInput('configurationPath') ?? '.github/pr_linter.json'
 
@@ -58,7 +57,9 @@ async function run(): Promise<void> {
     if (validateTitle) {
       core.info('Validating pull request title')
       core.debug(`title rules = ${config.rules[pullRequestType].title}`)
-      const isTitleValid = config.rules[pullRequestType].title.every(regexp => regexp.test(title))
+      const isTitleValid = config.rules[pullRequestType].title.every(rule =>
+        createRegex(rule).test(title),
+      )
       statuses.push(isTitleValid)
 
       if (!isTitleValid) {
@@ -77,7 +78,9 @@ async function run(): Promise<void> {
       core.info('Validating pull request base branch name')
       core.debug(`branch rules = ${config.rules[pullRequestType].branch}`)
 
-      const isBranchValid = config.rules[pullRequestType].branch?.test(branch) ?? true
+      const isBranchValid = config.rules[pullRequestType].branch?.every(rule =>
+        createRegex(rule).test(branch),
+      )
       statuses.push(isBranchValid)
 
       if (!isBranchValid) {

@@ -12,6 +12,8 @@ async function run(): Promise<void> {
     const octokit = github.getOctokit(token)
 
     const payload = github.context.payload as PullRequestEvent
+    core.debug(`event payload = ${JSON.stringify(payload)}`)
+
     const configurationFile: string = core.getInput('configurationPath') ?? '.github/pr_linter.json'
 
     const config = await fetchConfigurationFile(octokit, {
@@ -21,9 +23,9 @@ async function run(): Promise<void> {
       ref: payload.pull_request.head.sha,
     })
 
-    const ignoreCase = core.getInput('ignoreCase') ?? 'false'
-    const validateTitle = core.getInput('validateTitle') ?? 'true'
-    const validateBranch = core.getInput('validateBranch') ?? 'true'
+    const ignoreCase = core.getInput('ignoreCase') === 'true'
+    const validateTitle = core.getInput('validateTitle') === 'true'
+    const validateBranch = core.getInput('validateBranch') === 'true'
 
     core.endGroup()
 
@@ -43,6 +45,7 @@ async function run(): Promise<void> {
     }
 
     const title = ignoreCase ? payload.pull_request.title.toLowerCase() : payload.pull_request.title
+
     const branch = ignoreCase
       ? payload.pull_request.head.ref.toLowerCase()
       : payload.pull_request.head.ref

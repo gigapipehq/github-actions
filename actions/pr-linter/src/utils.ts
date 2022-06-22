@@ -45,7 +45,7 @@ export async function fetchConfigurationFile(
       core.debug(`rawConfig = ${rawConfig}`)
     } catch (error) {
       core.info(`⚠️ Configuration path provided, but it couldn't be found. Fallback to Defaults.`)
-      core.debug(`configuration = ${defaultConfig}`)
+      core.debug(`configuration = ${JSON.stringify(defaultConfig)}`)
       return defaultConfig
     }
 
@@ -61,7 +61,7 @@ export async function fetchConfigurationFile(
     }
   } else {
     core.info(`ℹ️ Configuration not provided. Using Defaults.`)
-    core.debug(`configuration = ${defaultConfig}`)
+    core.debug(`configuration = ${JSON.stringify(defaultConfig)}`)
 
     return defaultConfig
   }
